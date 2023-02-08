@@ -1,0 +1,43 @@
+version: '3.4'
+
+networks:
+  dev:
+    driver: bridge
+
+services:
+  auth:
+    image: docker.io/library/auth
+    depends_on:
+      - "auth_db"
+    container_name: auth-services
+    ports:
+      - "5172:80"
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - ConnectionStrings__SqlDatabase=Server=auth_db;Port=5432;Database=auth;User Id=postgres;Password=postgres;Pooling=true;
+      - JwtConfig__Issuer=albemo
+      - JwtConfig__Audience=albemo
+      - JwtConfig__Secret=gS52zZPrqxICY0XhaK7kMd4T8xvOLsXuRCjNmPXw
+      - ASPNETCORE_URLS=http://+:80
+    networks:
+      - dev
+
+  auth_db:
+    image: postgres:latest
+    container_name: auth_db
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=auth
+    ports:
+      - "5433:5432"
+    restart: always
+    volumes:
+      - app_data:/var/lib/postgresql/data
+    networks:
+      - dev
+
+volumes:
+  app_data:
